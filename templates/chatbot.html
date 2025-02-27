@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Mediscript - Chatbot{% endblock %}
+
+{% block head %}
+<!-- Include Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<br>
+<br>
+<br>
+<br>
+<div class="chatbot-container" style="width: 90%; margin: 50px auto; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden;">
+    <h2>MedScript's AI ChatBot Feature</h2>
+    <p>Interact with our AI-powered chatbot to get answers to your medical questions. Simply type your question below and hit enter or click the send button.</p>
+    <div class="chatbot-messages" id="chatbot-messages" style="width: 100%; max-width: 1100px;"></div>
+    <div class="chatbot-input-container">
+        <form id="chatbot-form">
+            <div class="textarea-container">
+                <textarea id="user-question" placeholder="Type your medical question..." required>{{ request.args.get('text', '') }}</textarea>
+                <button type="submit" class="cta-button">
+                    <strong>🢂</strong>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<h6 style="font-style: italic;">This conversation is AI-generated and may not always be accurate. Please verify important information.</h6>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('chatbot-form');
+        const textarea = document.getElementById('user-question');
+
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const question = textarea.value.trim();
+            const messagesDiv = document.getElementById('chatbot-messages');
+
+            if (!question) return;
+
+            // Add user message to the chat
+            const userMessageContainer = document.createElement("div");
+            userMessageContainer.classList.add("message-container", "user-message-container");
+
+            const userIcon = document.createElement("img");
+            userIcon.src = "{{ url_for('static', filename='user-icon1.png') }}";
+            userIcon.classList.add("message-icon", "user-icon");
+
+            const userMessage = document.createElement("div");
+            userMessage.classList.add("message", "user-message");
+            userMessage.innerHTML = `${question}`;
+
+            userMessageContainer.appendChild(userMessage);
+            userMessageContainer.appendChild(userIcon);
+            messagesDiv.appendChild(userMessageContainer);
+            textarea.value = "";
+
+            // Add typing indicator
+            const typingIndicator = document.createElement("div");
+            typingIndicator.classList.add("typing");
+            typingIndicator.innerText = "AI is typing...";
+            messagesDiv.appendChild(typingIndicator);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            try {
+                // Send question to the server
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: question })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server Error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                messagesDiv.removeChild(typingIndicator);
+
+                // Add bot response to the chat
+                const botMessageContainer = document.createElement("div");
+                botMessageContainer.classList.add("message-container", "bot-message-container");
+
+                const botIcon = document.createElement("img");
+                botIcon.src = "{{ url_for('static', filename='chatbot-icon.png') }}";
+                botIcon.classList.add("message-icon", "bot-icon");
+
+                const botMessage = document.createElement("div");
+                botMessage.classList.add("message", "bot-message");
+                let responseText = data.response.replace(/[.:]/g, '$&<br>');
+                const keywords = ["Dosage", "Frequency", "Duration", "Usage", "Precautions"];
+                keywords.forEach(keyword => {
+                    const regex = new RegExp(`\\b${keyword}\\b`, 'g');
+                    responseText = responseText.replace(regex, '<br><strong>' + keyword + '</strong>');
+                });
+
+                // Convert response to table format
+                const table = document.createElement("table");
+                table.style.width = "100%";
+                table.style.borderCollapse = "collapse";
+                const rows = responseText.split('<br>').filter(row => row.trim() !== '');
+                rows.forEach(row => {
+                    const tr = document.createElement("tr");
+                    const td = document.createElement("td");
+                    td.style.border = "1px solid #ddd";
+                    td.style.padding = "8px";
+                    td.innerHTML = row;
+                    tr.appendChild(td);
+                    table.appendChild(tr);
+                });
+
+                botMessage.appendChild(table);
+                botMessageContainer.appendChild(botIcon);
+                botMessageContainer.appendChild(botMessage);
+                messagesDiv.appendChild(botMessageContainer);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            } catch (error) {
+                // Handle errors
+                messagesDiv.removeChild(typingIndicator);
+                const errorMessage = document.createElement("div");
+                errorMessage.classList.add("message", "bot-message");
+                errorMessage.style.color = "red";
+                errorMessage.innerText = `❌ Error: ${error.message}`;
+                messagesDiv.appendChild(errorMessage);
+            }
+        });
+
+        // Submit form on Enter key press
+        textarea.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                form.dispatchEvent(new Event('submit'));
+            }
+        });
+    });
+</script>
+{% endblock %}

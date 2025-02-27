@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Cinovates{% endblock %}</title>
+    <!-- Include Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Cinovates Logo"> MedScript
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('medscript') }}">Med Script</a>
+            <a href="{{ url_for('medicine_search') }}">Med Search</a>
+            <a href="{{ url_for('chatbot') }}">Medibot</a>
+            <a href="{{ url_for('ai_consultant') }}">AI Consultant</a>
+        </div>
+    </div>
+
+    {% block content %}{% endblock %}
+
+    <footer>
+        <div class="footer-container">
+            <div class="newsletter">
+                <h2>Sign up for our free Good Health Newsletter</h2>
+                <p>Get wellness tips to help you live happier and healthier</p>
+                <div class="newsletter-form">
+                    <input type="email" placeholder="Enter your email address">
+                    <button disabled>Subscribe</button>
+                </div>
+                <p class="terms">By clicking Subscribe, I agree to the WebMD <a href="#">Terms & Conditions</a> & <a href="#">Privacy Policy</a> and understand that I may opt out at any time.</p>
+            </div>
+            <div class="footer-links">
+                <div class="social-media">
+                    <h3>Follow Us on Social Media</h3>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-tiktok"></i></a>
+                        <a href="#"><i class="fab fa-pinterest"></i></a>
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 All rights reserved.<a href="features.html">See additional information.</a></p>
+                <div class="certifications">
+                    <i class="fas fa-shield-alt"></i>
+                    <i class="fas fa-tag"></i>
+                    <i class="fas fa-ad"></i>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

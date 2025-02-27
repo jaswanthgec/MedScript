@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>MedScript - Profile</title>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="MedScript Logo" class="header__logo-img">
+            <span class="header__logo-text">MedScript</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('medicine_search') }}">Medicine Search</a>
+            <a href="{{ url_for('features') }}">Features</a>
+            <a href="{{ url_for('contact') }}">Contact</a>
+            <a href="{{ url_for('profile') }}">Profile</a>
+            <a href="{{ url_for('logout') }}">Logout</a> <!-- Add logout button -->
+        </div>
+    </header>
+
+    <main class="profile">
+        <div class="profile__card">
+            <img src="{{ url_for('static', filename='profile.png') }}" alt="Profile Picture" class="profile__image">
+            <h2 class="profile__name">{{ profile.name }}</h2>
+            <p class="profile__info">Email: {{ profile.email }}</p>
+            <p class="profile__info">Phone: {{ profile.phone }}</p>
+            <button class="profile__edit-button" id="edit-profile-button">Edit Profile</button>
+            <form class="profile__edit-form" id="edit-profile-form" action="{{ url_for('profile') }}" method="POST" enctype="multipart/form-data">
+                <label for="name" class="profile__form-label">Name</label>
+                <input type="text" id="name" name="name" placeholder="Your Name" value="{{ profile.name }}" required class="profile__form-input">
+
+                <label for="email" class="profile__form-label">Email</label>
+                <input type="email" id="email" name="email" placeholder="Your Email" value="{{ profile.email }}" required class="profile__form-input">
+
+                <label for="phone" class="profile__form-label">Phone</label>
+                <input type="text" id="phone" name="phone" placeholder="Your Phone" value="{{ profile.phone }}" required class="profile__form-input">
+
+                <label for="profile-picture" class="profile__form-label">Profile Picture</label>
+                <input type="file" id="profile-picture" name="profile_picture" class="profile__form-input">
+
+                <button type="submit" class="profile__form-submit">Save Changes</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const editButton = document.getElementById('edit-profile-button');
+            const editForm = document.getElementById('edit-profile-form');
+
+            if (editButton && editForm) {
+                editButton.addEventListener('click', function () {
+                    if (editForm.style.display === 'none' || editForm.style.display === '') {
+                        editForm.style.display = 'block';
+                    } else {
+                        editForm.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
+
+<footer class="footer">
+    <div class="footer__content">
+        <div class="footer__section about">
+            <h3 class="footer__title">About MedScript</h3>
+            <p class="footer__text">
+                MedScript is a platform dedicated to improving healthcare through innovative solutions. 
+                We aim to make medical information accessible and easy to understand for everyone.
+            </p>
+        </div>
+        <div class="footer__section links">
+            <h3 class="footer__title">Quick Links</h3>
+            <ul class="footer__list">
+                <li><a href="{{ url_for('index') }}" class="footer__link">Home</a></li>
+                <li><a href="{{ url_for('medicine_search') }}" class="footer__link">Medicine Search</a></li>
+                <li><a href="{{ url_for('features') }}" class="footer__link">Features</a></li>
+                <li><a href="{{ url_for('contact') }}" class="footer__link">Contact</a></li>
+                <li><a href="{{ url_for('profile') }}" class="footer__link">Profile</a></li>
+            </ul>
+        </div>
+        <div class="footer__section contact">
+            <h3 class="footer__title">Contact Us</h3>
+            <ul class="footer__list">
+                <li><span class="footer__icon">📧</span> info@medscript.com</li>
+                <li><span class="footer__icon">📞</span> +91 8143506309</li>
+                <li><span class="footer__icon">📍</span> 123 Healthcare St, Kaikalur</li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer__bottom">
+        <p class="footer__copyright">&copy; 2025 MedScript. All rights reserved.</p>
+        <div class="footer__social">
+            <a href="https://www.facebook.com/hitesh.gottapu" class="footer__social-link">Facebook</a>
+            <a href="https://x.com/HiteshGottapu" class="footer__social-link">Twitter</a>
+            <a href="https://www.linkedin.com/in/hitesh-data-scientist/" class="footer__social-link">LinkedIn</a>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

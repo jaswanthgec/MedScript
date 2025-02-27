@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}AI Consultant{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Med Script's <span>AI</span> Consultant</h1>
+    <p>Our AI Consultant intelligently analyzes symptoms to predict potential diseases and provide personalized health recommendations. With insights on medications, precautions, diets, and workouts, it empowers users with data-driven healthcare guidance.</p>
+</div>
+<div class="main-container fade-in">
+    <div class="form-container shadow-box slide-in">
+        <h2 style="text-align: center;">Please enter your details to understand the Disease, Precautions, Workouts and Diets</h2>
+        <form action="/predict" method="post">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" class="form-control custom-input" id="name" name="name" placeholder="Enter your name" required>
+            </div>
+            <div class="form-group">
+                <label for="age">Age:</label>
+                <input type="number" class="form-control custom-input" id="age" name="age" placeholder="Enter your age" required>
+            </div>
+            <div class="form-group">
+                <label for="location">Location:</label>
+                <input type="text" class="form-control custom-input" id="location" name="location" placeholder="Enter your location" required>
+            </div>
+            <div class="form-group">
+                <label for="symptoms">Select Symptoms:</label>
+                <div class="input-group">
+                    <input type="text" class="form-control custom-input" id="symptoms" name="symptoms" placeholder="Type symptoms such as itching, sleeping, aching etc">
+                    <button type="button" id="startSpeechRecognition" class="mic-button">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+            {% if message %}
+            <p>{{ message }}</p>
+            {% endif %}
+            <button type="submit" class="custom-button" style="background-color: #FF2052; text-align: center; display: block; margin: 0 auto;">Predict</button>
+        </form>
+    </div>
+    <div class="results-container shadow-box fade-in" style="border: none;">
+        {% if predicted_disease %}
+        <div class="custom-card mt-4" style="border: none;"> 
+            <p><strong>Name:</strong> {{ name }}</p>
+            <p><strong>Age:</strong> {{ age }}</p>
+            <p><strong>Location:</strong> {{ location }}</p>
+            <p><strong>Symptoms:</strong> {{ symptoms }}</p>
+            <p><strong>Predicted Disease:</strong> {{ predicted_disease }}</p>
+            <div class="button-grid" style="grid-template-columns: repeat(1, 1fr);">
+                <div class="accordion-item">
+                    <button class="custom-button accordion-button">
+                        <span>Disease</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content" style="border: none;">
+                        <p>Predicted Disease: {{ predicted_disease }}</p>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <button class="custom-button accordion-button">
+                        <span>Description</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content" style="border: none;">
+                        <p>Description: {{ dis_des }}</p>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <button class="custom-button accordion-button">
+                        <span>Precaution</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content" style="border: none;">
+                        <p>Precautions: {% for i in my_precautions %} {{ i }} {% endfor %}</p>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <button class="custom-button accordion-button">
+                        <span>Medications</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content" style="border: none;">
+                        <p>Medications: {% for i in medications %} {{ i }} {% endfor %}</p>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <button class="custom-button accordion-button">
+                        <span>Workouts</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content" style="border: none;">
+                        <p>Workouts: {% for i in workout %} {{ i }} {% endfor %}</p>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <button class="custom-button accordion-button">
+                        <span>Diets</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content" style="border: none;">
+                        <p>Diets: {% for i in my_diet %} {{ i }} {% endfor %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <form action="/download_pdf" method="get">
+            <textarea name="text" style="display:none;">
+Name: {{ name }}
+Age: {{ age }}
+Location: {{ location }}
+Symptoms: {{ symptoms }}
+Predicted Disease: {{ predicted_disease }}
+Description: {{ dis_des }}
+Precautions: 
+{% for i in my_precautions %}
+- {{ i }}
+{% endfor %}
+Medications: 
+{% for i in medications %}
+- {{ i }}
+{% endfor %}
+Workouts: 
+{% for i in workout %}
+- {{ i }}
+{% endfor %}
+Diets: 
+{% for i in my_diet %}
+- {{ i }}
+{% endfor %}
+    </textarea>
+            <button type="submit" class="custom-button" style="background-color: #28a745; width: auto; text-align: center; display: block; margin: 0 auto;">Health Report Download</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+<!-- Modal Popup -->
+<div id="messageModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <p id="modalMessage" style="white-space: pre-line;"></p>
+    </div>
+</div>
+
+<script>
+    const startSpeechRecognitionButton = document.getElementById('startSpeechRecognition');
+    const symptomsInput = document.getElementById('symptoms');
+
+    startSpeechRecognitionButton.addEventListener('click', startSpeechRecognition);
+
+    function startSpeechRecognition() {
+        const recognition = new webkitSpeechRecognition(); // Use webkitSpeechRecognition for compatibility
+
+        recognition.lang = 'en-US'; // Set the language for recognition
+
+        recognition.onresult = function (event) {
+            const result = event.results[0][0].transcript;
+            symptomsInput.value = result; // Place the result in the symptoms input box
+        };
+
+        recognition.onend = function () {
+            console.log('Speech recognition ended.');
+        };
+
+        recognition.start();
+    }
+
+    // Accordion functionality
+    const accordionButtons = document.querySelectorAll('.accordion-button');
+
+    accordionButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const content = button.nextElementSibling;
+            const icon = button.querySelector('i');
+
+            // Toggle content visibility with smooth animation
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            }
+        });
+    });
+
+    // Function to download health report as a PDF document
+    document.getElementById('downloadReport').addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+
+        const doc = new jsPDF();
+
+        doc.setFontSize(16);
+        doc.text('Health Report', 105, 10, null, null, 'center');
+        doc.setFontSize(12);
+        doc.text(`Name: {{ name }}`, 10, 30);
+        doc.text(`Age: {{ age }}`, 10, 40);
+        doc.text(`Location: {{ location }}`, 10, 50);
+        doc.text(`Symptoms: {{ symptoms }}`, 10, 60);
+        doc.text(`Predicted Disease: {{ predicted_disease }}`, 10, 70);
+        doc.text('Description:', 10, 80);
+        doc.text(`{{ dis_des }}`, 10, 90, { maxWidth: 190 });
+        doc.text('Precautions:', 10, 110);
+        {{ precautions_js }}
+        doc.text('Medications:', 10, doc.lastAutoTable.finalY + 20);
+        {{ medications_js }}
+        doc.text('Workouts:', 10, doc.lastAutoTable.finalY + 40);
+        {{ workouts_js }}
+        doc.text('Diets:', 10, doc.lastAutoTable.finalY + 60);
+        {{ diets_js }}
+
+        doc.save('Health_Report.pdf');
+    });
+
+    function cleanAndFormatText(text) {
+        // Remove unwanted symbols and fix formatting issues
+        text = text.replace(/[■\[\]'"]/g, '')  // Remove symbols like ■, [, ], ', "
+                   .replace(/\s+/g, ' ')  // Replace multiple spaces with a single space
+                   .trim();  // Remove leading/trailing whitespace
+
+        // Extract sections using regular expressions
+        const sections = {
+            Age: (text.match(/Age:\s*(.*?)(?=\n|$)/) || [])[1]?.trim() || '',
+            Location: (text.match(/Location:\s*(.*?)(?=\n|$)/) || [])[1]?.trim() || '',
+            Symptoms: (text.match(/Symptoms:\s*(.*?)(?=\n|$)/) || [])[1]?.trim() || '',
+            PredictedDisease: (text.match(/Predicted Disease:\s*(.*?)(?=\n|$)/) || [])[1]?.trim() || '',
+            Description: (text.match(/Description:\s*(.*?)(?=\n\w+:|$)/s) || [])[1]?.trim() || '',
+            Precautions: [...text.matchAll(/-\s*(.*?)(?=\n\w+:|$)/g)].map(match => match[1].trim()),
+            Medications: [...text.matchAll(/-\s*(.*?)(?=\n\w+:|$)/g)].map(match => match[1].trim()),
+            Workouts: [...text.matchAll(/-\s*(.*?)(?=\n\w+:|$)/g)].map(match => match[1].trim()),
+            Diets: [...text.matchAll(/-\s*(.*?)(?=\n\w+:|$)/g)].map(match => match[1].trim()),
+        };
+
+        // Format the output
+        const formattedText = `
+### Health Report
+
+- **Age**: ${sections.Age}
+- **Location**: ${sections.Location}
+- **Symptoms**: ${sections.Symptoms}
+- **Predicted Disease**: ${sections.PredictedDisease}
+- **Description**: ${sections.Description}
+
+---
+
+### Precautions:
+${sections.Precautions.map(item => `- ${item}`).join('\n')}
+
+---
+
+### Medications:
+${sections.Medications.map(item => `- ${item}`).join('\n')}
+
+---
+
+### Workouts:
+${sections.Workouts.map(item => `- ${item}`).join('\n')}
+
+---
+
+### Diets:
+${sections.Diets.map(item => `- ${item}`).join('\n')}
+        `;
+
+        return formattedText;
+    }
+</script>
+
+<style>
+    .button-grid {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr); /* 1 button per row */
+        gap: 10px; /* Space between buttons */
+        margin-top: 10px; /* Adjust margin as needed */
+    }
+
+    .custom-button {
+        width: 50%; /* Ensure buttons take full width of their grid cell */
+        padding: 10px; /* Add padding for better spacing */
+        text-align: center; /* Align text to the left */
+        background-color: #007bff; /* Blue background */
+        color: white; /* White text */
+        border: none; /* Remove border */
+        border-radius: 5px; /* Rounded corners */
+        cursor: pointer; /* Pointer cursor on hover */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .custom-button:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+    }
+
+    .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out; /* Smooth transition */
+        padding: 0 10px;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin-top: 5px;
+    }
+
+    .accordion-item {
+        margin-bottom: 10px; /* Space between accordion items */
+    }
+
+    .accordion-button i {
+        transition: transform 0.3s ease; /* Smooth icon rotation */
+    }
+</style>
+{% endblock %}

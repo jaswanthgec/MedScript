@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Mediscript - Medicine Search{% endblock %}
+
+{% block content %}
+<br><br>
+<div class="container">
+    <div class="pharma-branding">
+        <h1 class="fade-in">MedPrice Pro</h1>
+        <p class="data-source fade-in">Real-time Pharmaceutical Pricing Data</p>
+    </div>
+
+    <div class="search-container slide-in">
+        <input type="text" class="search-input" placeholder="Enter drug name or INN..." id="medicineName" onkeypress="if(event.key === 'Enter') searchMedicine()">
+        <button class="search-btn" onclick="searchMedicine()">
+            <span>&#128269;</span> <!-- Unicode for magnifying glass symbol -->
+        </button>
+    </div>
+
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th>Pharmacy</th>
+                <th>Medicine Name</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody id="resultsBody">
+            <tr class="empty-state">
+                <td colspan="3">Enter drug name to compare prices</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+</div>
+
+<script>
+    async function searchMedicine() {
+        const medicineName = document.getElementById("medicineName").value.trim();
+        const resultsBody = document.getElementById("resultsBody");
+        const loadingOverlay = document.getElementById("loadingOverlay");
+
+        if (!medicineName) {
+            alert("Please enter a medicine name");
+            return;
+        }
+
+        loadingOverlay.style.display = 'flex';
+
+        try {
+            // Fetch data from the Flask route
+            const response = await fetch(`/medicine-search?name=${encodeURIComponent(medicineName)}`);
+            const data = await response.json();
+
+            resultsBody.innerHTML = '';
+
+            if (data.length === 0) {
+                resultsBody.innerHTML = `
+                    <tr class="empty-state">
+                        <td colspan="3">No results found for "${medicineName}"</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Populate the table with results
+            data.forEach(item => {
+                const row = document.createElement("tr");
+                row.classList.add("fade-in"); // Add animation class
+                row.innerHTML = `
+                    <td>${item.pharmacy}</td>
+                    <td>${item.name}</td>
+                    <td class="price-cell">${item.price}</td>
+                `;
+                resultsBody.appendChild(row);
+            });
+        } catch (error) {
+            alert("Error fetching data. Please try again.");
+        } finally {
+            loadingOverlay.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}
